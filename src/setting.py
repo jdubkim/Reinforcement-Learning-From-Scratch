@@ -6,7 +6,8 @@ from gym.scoreboard.registration import add_task
 '''
 Environment Settings
 '''
-def env_set():
+def set_env():
+    
     register(
          id='SuperMarioBros-1-1-v0',
          entry_point='gym.envs.ppaquette_gym_super_mario:MetaSuperMarioBrosEnv',
@@ -23,3 +24,4 @@ def env_set():
         group='ppaquette_gym_super_mario',
         summary="SuperMarioBros-1-1-v0"
     )
+    
