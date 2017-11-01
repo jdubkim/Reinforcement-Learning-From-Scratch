@@ -1,5 +1,5 @@
 import gym
-from src.setting import *
+from setting import *
 
 env_set()
 env = gym.make('SuperMarioBros-1-1-v0')
