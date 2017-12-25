@@ -2,12 +2,12 @@ import gym
 
 import setting
 import config
+import dqn2015
 
 setting.set_env()
 env = gym.make('SuperMarioBros-1-1-v0')
-env.reset()
+env = gym.wrappers.Monitor(env, directory="gym-results/", force=True)
+#env.reset()
 
-for _ in range(config.nb_iter):
-    env.render()
-    env.step(env.action_space.sample()) # take a random action
-
+qNet = dqn2015.DQN2015(env)
+qNet.run()
