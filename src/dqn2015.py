@@ -159,7 +159,7 @@ class DQN2015:
                     save_path = self.saver.save(sess, 'models/model.ckpt')
                     print("Model saved in file: %s" % save_path)
 
-                print("Episode %d: Maximum distance: %d" %episode % current_distance)
+                print("Episode %d: Maximum distance: %d"%(episode, current_distance))
 
             # See our trained bot in action
             env2 = wrappers.Monitor(self.env, 'gym-results', force=True)
