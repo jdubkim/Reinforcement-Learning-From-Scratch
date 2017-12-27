@@ -4,6 +4,7 @@ import gym
 from gym import wrappers
 import random
 from collections import deque
+from pathlib import Path
 from typing import List
 
 import dqn
@@ -77,27 +78,31 @@ class DQN2015:
     def run(self):
 
         print(self.env.observation_space.shape[0], self.env.observation_space.shape[1], self.output_size)
-        max_episodes = 5000
         # store the previous observations in replay memory
         replay_buffer = deque()
-        max_distance = 0
-        prev_pos = 0
 
         with tf.Session() as sess:
             mainDQN = dqn.DQN(sess, self.input_size, self.output_size, name="main")
             targetDQN = dqn.DQN(sess, self.input_size, self.output_size, name="target")
-            tf.global_variables_initializer().run()
             self.saver = tf.train.Saver()
+
+            model_stored = Path("/models/")
+            if model_stored.is_file():
+                self.saver.restore(sess, "/models/model.ckpt")
+                print("Existing model restored")
+            else:
+                tf.global_variables_initializer().run()
+
 
             # initial copy q_net -> target_net
             copy_ops = self.get_copy_var_ops(dest_scope_name="target", src_scope_name="main")
             sess.run(copy_ops)
 
-            for episode in range(max_episodes):
+            for episode in range(MAX_EPISODES):
                 e = 1. / ((episode / 10) + 1)
                 done = False
-                step_count = 0
-                stopped_count = 0
+                max_distance = 0
+                prev_pos = 0
                 state = self.env.reset()
 
                 while not done:
@@ -114,21 +119,24 @@ class DQN2015:
 
                     # Get new state and reward from environment
                     next_state, reward, done, info = self.env.step(action)
+                    #print(info)
+
                     current_distance = info['distance']
                     if done:  # Death or stayed more than 10000 steps
                         reward -= 3
 
                     if current_distance > prev_pos: # Move right
                         reward += 0.5
-                        stopped_count = 0
                     elif current_distance < prev_pos: # Move left
-                        stopped_count += 1
                         reward -= 1.0
 
                     if current_distance - prev_pos > 8: # Move right fast
                         reward += 1.0
                     elif current_distance - prev_pos < -8: # Move left fast
                         reward -= 1.5
+
+                    #if is_level_cleared:
+                    # reward += 2
 
                     prev_pos = current_distance
 
@@ -138,17 +146,8 @@ class DQN2015:
                         replay_buffer.popleft()
 
                     state = next_state
-                    step_count += 1
-                    if step_count > 10000:  # Good enough. Let's move on
-                        print("done")
-                        break
 
-                print("Episode: {} steps: {}".format(episode, step_count))
-                if step_count > 10000:
-                    pass
-                    # break
-
-                if episode % 3 == 1:  # train every 10 episode
+                if episode % 2 == 1:  # train every 10 episode
                     # Get a random batch of experiences
                     for _ in range(50):
                         minibatch = random.sample(replay_buffer, 10)
@@ -157,13 +156,15 @@ class DQN2015:
                     print("Loss: ", loss)
                     # copy q_net -> target_net
                     sess.run(copy_ops)
+                    save_path = self.saver.save(sess, 'models/model.ckpt')
+                    print("Model saved in file: %s" % save_path)
+
+                print("Episode %d: Maximum distance: %d" %episode % current_distance)
 
             # See our trained bot in action
-            #env2 = wrappers.Monitor(self.env, 'gym-results', force=True)
+            env2 = wrappers.Monitor(self.env, 'gym-results', force=True)
 
             for i in range(200):
                 self.bot_play(mainDQN)
-                if i % 50 == 0:
-                    self.saver.save(sess, 'test_model')
 
             env2.close()

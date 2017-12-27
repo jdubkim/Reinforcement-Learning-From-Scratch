@@ -49,7 +49,8 @@ class DQN:
             net = tf.layers.dense(inputs=net, name='layer_fc1', units=1024,
                                   kernel_initializer=init, activation=activation)
 
-
+            net = tf.layers.dense(inputs=net, name='layer_fc2', units=1024,
+                                  kernel_initializer=init, activation=activation)
 
             # Final fully-connected layer.
             net = tf.layers.dense(inputs=net, name='layer_fc_out', units=self.output_size,
