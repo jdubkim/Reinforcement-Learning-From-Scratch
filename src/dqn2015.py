@@ -119,7 +119,7 @@ class DQN2015:
 
                     # Get new state and reward from environment
                     next_state, reward, done, info = self.env.step(action)
-                    #print(info)
+                    print(info)
 
                     current_distance = info['distance']
                     if done:  # Death or stayed more than 10000 steps
@@ -146,6 +146,10 @@ class DQN2015:
                         replay_buffer.popleft()
 
                     state = next_state
+
+                # Check if second level is unlocked
+                if not info['locked_levels'][1]:
+                    pass
 
                 if episode % 2 == 1:  # train every 10 episode
                     # Get a random batch of experiences
